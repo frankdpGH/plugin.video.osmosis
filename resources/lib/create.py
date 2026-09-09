@@ -126,7 +126,7 @@ def addToMedialist(params):
     name = name_orig = params.get('name')
     # A dialog to rename the Change Title for Folder and MediaList entry:
     if params.get('noninteractive', False) == False:
-        name = re.sub('( - |, )*([sS](taffel|eason|erie[s]{0,1})|[pP]art|[tT]eil) \d+', '', name_orig)
+        name = re.sub(r'( - |, )*([sS](taffel|eason|erie[s]{0,1})|[pP]art|[tT]eil) \d+', '', name_orig)
         if name != name_orig:
             tvshow_detected = True
         else:
@@ -190,7 +190,7 @@ def addToMedialist(params):
                 if params.get('filetype', 'directory') == 'file':
                     url += '&playMode=play'
                 if (settings.SEARCH_THETVDB == 2 and cType.find('TV-Shows') != -1 and choice == 0):
-                    show_data = getShowByName(name, re.sub('TV-Shows\((.*)\)', r'\g<1>', cType))
+                    show_data = getShowByName(name, re.sub(r'TV-Shows\((.*)\)', r'\g<1>', cType))
                     if show_data:
                         showtitle_tvdb = show_data.get('seriesName', name)
                         if showtitle_tvdb != name:
@@ -200,7 +200,7 @@ def addToMedialist(params):
                 # globals.dialog.notification(cType, name_orig, globals.MEDIA_ICON, 5000, False)
 
                 try:
-                    plugin_id = re.search('{0}([^\/\?]*)'.format('plugin:\/\/'), url)
+                    plugin_id = re.search(r'{0}([^\/\?]*)'.format('plugin://'), url)
                     if plugin_id:
                         module = getModule(plugin_id.group(1))
                         if module and hasattr(module, 'create'):
@@ -294,7 +294,7 @@ def renameMediaListEntry(selectedItems):
                 name = editDialog(name_old).strip()
                 name = '{0}++RenamedTitle++'.format(name) if name else name
             elif choice == 0:
-                show_data = getShowByName(name_old, re.sub('TV-Shows\((.*)\)', r'\g<1>', cType))
+                show_data = getShowByName(name_old, re.sub(r'TV-Shows\((.*)\)', r'\g<1>', cType))
                 if show_data:
                     name = show_data.get('seriesName', name_old)
             if name and name_old != name:
@@ -398,7 +398,7 @@ def addAlbum(contentList, strm_name, strm_type, pDialog, PAGINGalbums='1'):
                     link = file
                     
                 if art:                    
-                    plugin_id = re.search('{0}([^\/\?]*)'.format('plugin:\/\/'), file)
+                    plugin_id = re.search(r'{0}([^\/\?]*)'.format('plugin://'), file)
                     if plugin_id:
                         module = getModule(plugin_id.group(1))
                         if module and hasattr(module, 'getArt'):
@@ -466,7 +466,7 @@ def addMovies(contentList, strm_name, strm_type, name_orig, pDialog, provider='n
                     label = cleanLabels(label, keep_year=settings.KEEP_MOVIE_YEAR)
                     get_title_with_OV = True
                     if settings.HIDE_TITLE_IN_OV:
-                        if re.search('(\WOV\W)', label):
+                        if re.search(r'(\WOV\W)', label):
                             get_title_with_OV = False
 
                     provider = getProviderId(file)
@@ -505,6 +505,10 @@ def addMovies(contentList, strm_name, strm_type, name_orig, pDialog, provider='n
     if globals.monitor.abortRequested():
         exit()
 
+    for item in movieList:
+        if item.get("provider") == "plugin.video.vrt.nu":     # mod for plugin as url not working 
+            item["url"] = item["url"].replace("&playMode=play", "")
+
     if settings.LINK_TYPE == 0:
         movieList = writeMovie(movieList)
 
@@ -523,7 +527,7 @@ def addMovies(contentList, strm_name, strm_type, name_orig, pDialog, provider='n
 def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesDone=0):
     dirList = []
     episodesList = []
-
+    
     lang = None
     if strm_type.lower().find('other') == -1:
         lang = strm_type[strm_type.find('(') + 1:strm_type.find(')')]
@@ -550,12 +554,13 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
                     dirList.append(json_reply)
                     continue
                 elif filetype == 'file':
-                    showtitle = detailInfo.get('showtitle')
+                    if detailInfo.get('showtitle'):
+                        showtitle = detailInfo.get('showtitle')
                     get_title_with_OV = True
                     if settings.HIDE_TITLE_IN_OV:
                         label = detailInfo.get('label').strip() if detailInfo.get('label', None) else None
                         label = cleanLabels(label)
-                        if re.search('(\WOV\W)', label):
+                        if re.search(r'(\WOV\W)', label):
                             get_title_with_OV = False
 
                     if get_title_with_OV:
@@ -598,7 +603,7 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
                                 detailInfo['episode'] = [detailInfo['episode'], detailInfo['episode'] + 1]
 
                             episodetitles = list(filter(None, re.split(' / | , ', episodetitle)))
-                            if episodetitles[0] != episodetitle and not re.search(' *(-|\(|:)* *([tT]eil|[pP]art|[pP]t\.) (\d+|\w+)\)*', episodetitle):
+                            if episodetitles[0] != episodetitle and not re.search(r' *(-|\(|:)* *([tT]eil|[pP]art|[pP]t\.) (\d+|\w+)\)*', episodetitle):
                                 addon_log_notice('check multi episode \'{0}\': \'S{1:02d}E{2:02d} - {3}\''.format(showtitle, episodeseason, episode, episodetitle))
                                 seasonm = []
                                 episodem = []

@@ -555,7 +555,8 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
                     continue
                 elif filetype == 'file':
                     if detailInfo.get('showtitle'):
-                        showtitle = detailInfo.get('showtitle')
+                        showtitle2 = detailInfo.get('showtitle')
+                        xbmc.log(f'showtitle is updated !! : {showtitle2}', xbmc.LOGINFO)
                     get_title_with_OV = True
                     if settings.HIDE_TITLE_IN_OV:
                         label = detailInfo.get('label').strip() if detailInfo.get('label', None) else None

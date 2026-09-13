@@ -125,7 +125,8 @@ def getType(url):
         selectOption = selectDialog(getString(39109, globals.addon), [getString(subtype.get('string_id')) for subtype in subtypes])
     else:
         subtypes = [dict(id='(de)', string_id=39118), dict(id='(en)', string_id=39119), dict(id='(sp)', string_id=39120), dict(id='(tr)', string_id=39121), dict(id='Other', string_id=39117)]
-        selectOption = selectDialog(getString(39110, globals.addon), [getString(subtype.get('string_id')) for subtype in subtypes])
+        # selectOption = selectDialog(getString(39110, globals.addon), [getString(subtype.get('string_id')) for subtype in subtypes])
+        selectOption = 1 #standard to (en) as TVDB is no longerworking and is scraped in the Kodi Library
 
     if selectOption == -1:
         return -1
@@ -136,7 +137,8 @@ def getType(url):
 
 def getTypeLangOnly(Type):
     langs = [dict(id='(de)', string_id=39118), dict(id='(en)', string_id=39119), dict(id='(sp)', string_id=39120), dict(id='(tr)', string_id=39121), dict(id='Other', string_id=39117)]
-    selectOption = selectDialog(getString(39110, globals.addon), [getString(lang.get('string_id')) for lang in langs])
+    # selectOption = selectDialog(getString(39110, globals.addon), [getString(lang.get('string_id')) for lang in langs])
+    selectOption = 1 #standard to (en) as TVDB is no longerworking and is scraped in the Kodi Library
 
     if selectOption == -1:
         return -1

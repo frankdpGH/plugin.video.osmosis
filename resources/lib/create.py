@@ -555,7 +555,10 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
                     continue
                 elif filetype == 'file':
                     if detailInfo.get('showtitle'):
-                        showtitle2 = detailInfo.get('showtitle')
+                        showtitle2 = detailInfo.get('showtitle') # if plugin returns mixed content , keep showtitle 
+                        if showtitle != showtitle2:
+                            detailInfo['title'] = showtitle2
+                            detailInfo['showtitle'] = showtitle
                         xbmc.log(f'showtitle is updated !! : {showtitle2}', xbmc.LOGINFO)
                     get_title_with_OV = True
                     if settings.HIDE_TITLE_IN_OV:
@@ -628,7 +631,7 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
 
             step = float(100.0 / len(episodesList) if len(episodesList) > 0 else 1)
             if pagesDone > 0 and pDialog:
-                pDialog.update(int(step), '\'{0} - Staffel {1}\' {2}'.format(showtitle, episodeseason, getString(39138, globals.addon)))
+                pDialog.update(int(step), '\'{0} - Season {1}\' {2}'.format(showtitle, episodeseason, getString(39138, globals.addon)))
 
             split_episode = 0
             for index, episode in enumerate(episodesList):

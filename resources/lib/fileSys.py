@@ -120,7 +120,7 @@ def writeMediaList(url, name, cType='Other', cleanName=True, albumartist=None):
     if not xbmcvfs.exists(settings.MEDIALIST_FILENNAME_AND_PATH):
         xbmcvfs.File(settings.MEDIALIST_FILENNAME_AND_PATH, 'w').close()
 
-    thelist = readMediaList()
+    thelist = readMediaList("All")
 
     thelist = [x for x in thelist if x != '']
     if len(thelist) > 0 :
@@ -205,7 +205,7 @@ def writeTutList(step):
         return True
 
 
-def make_sure_path_exists(path):
+def make_sure_path_exists(path):      # not in use errors
     try:
         os.makedirs(path)
     except OSError as exception:
@@ -229,13 +229,14 @@ def make_sure_path_exists(path):
                 output_file.write(linje.strip())
 
 
-def removeMediaList(delList):
-    addon_log('Removing items')
+def removeMediaList(delList,nodelstr=None):
+    addon_log(f'Removing items for delList: {delList} and nodelstr: {nodelstr}')
 
     if xbmcvfs.exists(settings.MEDIALIST_FILENNAME_AND_PATH):
-        removeStreamsFromDatabaseAndFilesystem(delList)
+        if nodelstr is None:
+            removeStreamsFromDatabaseAndFilesystem(delList)
 
-        thelist = readMediaList()
+        thelist = readMediaList("All") #ALL!!
 
         newlist = []
         for entry in thelist:
@@ -263,11 +264,33 @@ def removeMediaList(delList):
         del fle
 
 
-def readMediaList():
+def appendMediaList(new_lines):
+    path = settings.MEDIALIST_FILENNAME_AND_PATH
+    # Read existing content
+    if xbmcvfs.exists(path):
+        f = xbmcvfs.File(path, 'r')
+        content = f.read().splitlines()
+        f.close()
+    else:
+        content = []
+    # Add all new lines
+    content.extend(new_lines)
+    # Write full file back (SMB-safe)
+    f = xbmcvfs.File(path, 'w')
+    for line in content:
+        f.write(line + "\n")
+    f.close()
+    addon_log('MediaList updated successfully')
+
+def readMediaList(MListtype=None):
     if xbmcvfs.exists(settings.MEDIALIST_FILENNAME_AND_PATH):
         fle = xbmcvfs.File(settings.MEDIALIST_FILENNAME_AND_PATH, 'r')
         thelist = py2_decode(fle.read()).splitlines()
         fle.close()
+        if not MListtype:
+            thelist = [line for line in thelist if line.split("|")[-1] != "ignore"]
+        elif MListtype == "ignore":
+            thelist = [line for line in thelist if line.split("|")[-1] == "ignore"]
         return thelist
     else:
         return list()
@@ -297,7 +320,7 @@ def removeStreamsFromDatabaseAndFilesystem(delList):
             addon_log('remove: {0}'.format(path))
 
             deleteFromFileSystem = True
-            for split2 in splits[2].split('<next>'):
+            for split2 in splits[2].writeToMedialistsplit('<next>'):
                 streams = None
                 if type.lower().find('tv-shows') > -1 or type.lower().find('movies') > -1:
                     deleteFromFileSystem = False

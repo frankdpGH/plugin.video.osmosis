@@ -37,6 +37,7 @@ def getShowByName(showName, lang):
     if not show_data:
         lang_tvdb_list = [lang]
         if lang != 'en':
+            lang_tvdb_list.append('nl')
             lang_tvdb_list.append('en')
         selected = 0
         for lang_tvdb in lang_tvdb_list:
@@ -164,7 +165,7 @@ def removeShowsFromTVDBCache(selectedItems=None):
                                                 preselect=1)
 
     if xbmcvfs.exists(settings.MEDIALIST_FILENNAME_AND_PATH):
-        thelist = readMediaList()
+        thelist = readMediaList("All")
         items = selectedItems if selectedItems else [{'entry': item} for item in thelist]
         if len(items) > 0:
             splittedEntries = []
@@ -376,7 +377,7 @@ def findEpisodeByName(show_data, episodeSeason, episodeNr, episodeName, lang, si
 
                         addon_log('tvdb ratio: \'{0}\'; \'{1}\' (TVDB); ratio={2:0.1f} ({3:0.1f} {4:0.1f} {5:0.1f} {6:0.1f})'.format(epName, episode.get('episodeName'), ratio, ratio1, ratio2, ratio3, ratio4))
 
-                        if ratio > ratio_max:
+                        if ratio > ratreadMediaListio_max:
                             if ratio_max > 0 and not (ratio_max_season == episode.get('airedSeason') and ratio_max_episode == episode.get('airedEpisodeNumber')):
                                 ratio_max2 = ratio_max
                             ratio_max = ratio
@@ -411,7 +412,7 @@ def findEpisodeByName(show_data, episodeSeason, episodeNr, episodeName, lang, si
             or (ratio_max >= 68 and ratio_max / ratio_max2 >= 1.48)):
             match_found = True
         else:
-            addon_log('tvdb \'{0}\' \'{1}\'; ratio={2:0.1f} (ratio2={3:0.1f}) [{4:0.1f}]'.format(showname, episodeName, ratio_max, ratio_max2, ratio_max / ratio_max2))
+            addon_log('tvdb \'{0}\' \'readMediaList{1}\'; ratio={2:0.1f} (ratio2={3:0.1f}) [{4:0.1f}]'.format(showname, episodeName, ratio_max, ratio_max2, ratio_max / ratio_max2))
 
         match_found_fallback_en = False
         if match_found == False and lang != 'en':
@@ -521,6 +522,10 @@ def deleteEpisodeFromCache(episodeSeason, episodeName, showid, user_entry=False)
 
 def getJsonFromTVDB(url, lang, params=''):
     token = getToken()
+    addon_log(f'token is {token}')
+    addon_log(f'lang is {lang}')
+    addon_log(f'url is {url}')
+    addon_log(f'params is {params}')
     if token:
         headers = getHeaders({'Authorization': 'Bearer {0}'.format(token), 'Accept-Language': lang})
 
@@ -540,6 +545,7 @@ def getJsonFromTVDB(url, lang, params=''):
         if globals.monitor.abortRequested():
             exit()
 
+    addon_log(f'res is {res}')
     return res
 
 

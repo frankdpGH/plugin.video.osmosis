@@ -5,7 +5,7 @@ from kodi_six.utils import py2_decode
 
 import re
 
-import xbmcvfs
+import xbmc, xbmcvfs
 
 from .common import Globals, Settings
 from .create import fillPluginItems

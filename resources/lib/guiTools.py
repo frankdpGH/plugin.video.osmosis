@@ -98,6 +98,8 @@ def getSources():
     addItem(getString(39004, globals.addon), 42, globals.MEDIA_UPDATE)
     addFunction(getString(39005, globals.addon))
     addItem(getString(39006, globals.addon), 41, globals.MEDIA_UPDATE)
+    addItem("Mark for exclusion in MediaList", 43, globals.MEDIA_UPDATE)
+    addItem("Unmark exclusion of MediaList", 44, globals.MEDIA_UPDATE)
     addItem(getString(39007, globals.addon), 5, globals.MEDIA_REMOVE)
     addItem(getString(39008, globals.addon), 51, globals.MEDIA_REMOVE)
     addItem(getString(39009, globals.addon), 52, globals.MEDIA_REMOVE)
@@ -132,6 +134,8 @@ def getType(url):
         return -1
 
     if selectType >= 0 and selectOption >= 0:
+        stype = types[selectType].get('id')
+        ssubtype = subtypes[selectOption].get('id')
         return '{0}{1}'.format(types[selectType].get('id'), subtypes[selectOption].get('id'))
 
 
@@ -186,8 +190,8 @@ def resumePointDialog(resume, dialog, playback_rewind):
     return 0
 
 
-def mediaListDialog(multiselect=True, expand=True, cTypeFilter=None, header_prefix=globals.PLUGIN_NAME, preselect_name=None):
-    thelist = readMediaList()
+def mediaListDialog(multiselect=True, expand=True, cTypeFilter=None, header_prefix=globals.PLUGIN_NAME, preselect_name=None, MListtype=None):
+    thelist = readMediaList(MListtype)  #Mlisttype None = filtered no excluded, ignore = filtered only excluded , all (or something else) = filtered all
     items = []
     if not cTypeFilter:
         selectActions = [dict(id='Movies', string_id=39111), dict(id='TV-Shows', string_id=39112), dict(id='Audio', string_id=39113), dict(id='All', string_id=39122)]
@@ -272,3 +276,5 @@ def mediaListDialog(multiselect=True, expand=True, cTypeFilter=None, header_pref
     else:
         selectedList = [item for index, item in enumerate(items) if selectedItemsIndex > -1 and item.get('text') == py2_decode(sItems[selectedItemsIndex])]
         return selectedList[0] if len(selectedList) == 1 else None
+
+

@@ -10,7 +10,7 @@ import xbmc
 import xbmcgui
 
 from .common import Globals, Settings, exit, jsonrpc
-from .fileSys import readMediaList, removeMediaList, writeMediaList, writeSTRM, writeTutList
+from .fileSys import readMediaList, removeMediaList, writeMediaList, writeSTRM, writeTutList, appendMediaList
 from .guiTools import addDir, addLink, editDialog, getType, getTypeLangOnly, mediaListDialog, selectDialog
 from .jsonUtils import requestList
 from .kodiDB import musicDatabase, writeMovie, writeShow
@@ -190,6 +190,7 @@ def addToMedialist(params):
                 if params.get('filetype', 'directory') == 'file':
                     url += '&playMode=play'
                 if (settings.SEARCH_THETVDB == 2 and cType.find('TV-Shows') != -1 and choice == 0):
+                    temp=re.sub(r'TV-Shows\((.*)\)', r'\g<1>', cType)
                     show_data = getShowByName(name, re.sub(r'TV-Shows\((.*)\)', r'\g<1>', cType))
                     if show_data:
                         showtitle_tvdb = show_data.get('seriesName', name)
@@ -316,6 +317,30 @@ def removeAndReadMedialistEntry(selectedItems):
             addToMedialist(params)
 
 
+def MarkEXMediaList(selectedItems):
+    removeMediaList(selectedItems, nodelstr="Yes")  # removes stream!! add parameter nodelstr to avoid
+    new_lines = []
+    for item in selectedItems:
+        new_lines.append(item["entry"] + "|ignore")
+    appendMediaList(new_lines)
+    selectedLabels = sorted(list(dict.fromkeys([item.get('name') for item in selectedItems])), key=lambda k: k.lower())
+    globals.dialog.notification('Selected items are marked to ignore for updating: ','{0}'.format(', '.join(label for label in selectedLabels), globals.MEDIA_ICON, 5000, True))
+
+
+def UnmarkEXMediaList(selectedItems):
+    removeMediaList(selectedItems, nodelstr="Yes")  # removes stream!! add parameter nodelstr to avoid
+    new_lines = []
+    for item in selectedItems:
+        entry = item["entry"].rstrip()
+        # Remove trailing |ignore if present
+        if entry.endswith("|ignore"):
+            entry = entry[:-7]
+        new_lines.append(entry)
+    appendMediaList(new_lines)
+    selectedLabels = sorted(list(dict.fromkeys([item.get('name') for item in selectedItems])), key=lambda k: k.lower())
+    globals.dialog.notification('Selected items are back for updating: ','{0}'.format(', '.join(label for label in selectedLabels), globals.MEDIA_ICON, 5000, True))
+
+
 def removeItemsFromMediaList(action='list'):
     addon_log('removingitemsdialog')
 
@@ -425,7 +450,7 @@ def addAlbum(contentList, strm_name, strm_type, pDialog, PAGINGalbums='1'):
         exit()
 
     # Write strms for all values in albumList
-    thelist = readMediaList()
+    thelist = readMediaList("All")
     for entry in thelist:
         splits = entry.strip().split('|')
         splitsstrm = splits[0]
@@ -507,7 +532,7 @@ def addMovies(contentList, strm_name, strm_type, name_orig, pDialog, provider='n
 
     for item in movieList:
         if item.get("provider") == "plugin.video.vrt.nu":     # mod for plugin as url not working 
-            item["url"] = item["url"].replace("&playMode=play", "")
+            item["url"] = item["url"].replace("/&playMode=play", "")
 
     if settings.LINK_TYPE == 0:
         movieList = writeMovie(movieList)
@@ -538,6 +563,7 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
         for detailInfo in showList:
             filetype = detailInfo.get('filetype', None)
             file = detailInfo.get('file', None)
+            showtitle2 = ''
 
             if filetype:
                 if filetype == 'directory':
@@ -555,11 +581,10 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
                     continue
                 elif filetype == 'file':
                     if detailInfo.get('showtitle'):
-                        showtitle2 = detailInfo.get('showtitle') # if plugin returns mixed content , keep showtitle 
+                        showtitle2 = detailInfo.get('showtitle')
                         if showtitle != showtitle2:
                             detailInfo['title'] = showtitle2
                             detailInfo['showtitle'] = showtitle
-                        xbmc.log(f'showtitle is updated !! : {showtitle2}', xbmc.LOGINFO)
                     get_title_with_OV = True
                     if settings.HIDE_TITLE_IN_OV:
                         label = detailInfo.get('label').strip() if detailInfo.get('label', None) else None
@@ -667,7 +692,6 @@ def getTVShowFromList(showList, strm_name, strm_type, name_orig, pDialog, pagesD
         if pagesDone < settings.PAGING_TVSHOWS and len(dirList) > 0:
             showList = [item for sublist in dirList for item in sublist]
             dirList = []
-
 
 def getEpisode(episode_item, strm_name, strm_type, j=0, pagesDone=0, name_orig=None):
     episode = None

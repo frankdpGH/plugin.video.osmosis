@@ -287,6 +287,7 @@ def readMediaList(MListtype=None):
         fle = xbmcvfs.File(settings.MEDIALIST_FILENNAME_AND_PATH, 'r')
         thelist = py2_decode(fle.read()).splitlines()
         fle.close()
+        thelist = [line for line in thelist if line.strip()] #remove empty lines
         if not MListtype:
             thelist = [line for line in thelist if line.split("|")[-1] != "ignore"]
         elif MListtype == "ignore":
@@ -320,7 +321,7 @@ def removeStreamsFromDatabaseAndFilesystem(delList):
             addon_log('remove: {0}'.format(path))
 
             deleteFromFileSystem = True
-            for split2 in splits[2].writeToMedialistsplit('<next>'):
+            for split2 in splits[2].split('<next>'):
                 streams = None
                 if type.lower().find('tv-shows') > -1 or type.lower().find('movies') > -1:
                     deleteFromFileSystem = False
